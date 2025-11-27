@@ -1,5 +1,7 @@
 {
   "name": "Allrah - Automação Futurista",
   "description": "Landing page inovadora para startup de automação Allrah, apresentando design futurista e interativo com tema roxo neon.",
-  "requestFramePermissions": []
+  "requestFramePermissions": [
+    "microphone"
+  ]
 }

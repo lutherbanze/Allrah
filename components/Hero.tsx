@@ -1,7 +1,11 @@
 import React from 'react';
 import { ArrowRight, Bot, Cpu, Network } from 'lucide-react';
 
-const Hero: React.FC = () => {
+interface HeroProps {
+  onStartRevolution?: () => void;
+}
+
+const Hero: React.FC<HeroProps> = ({ onStartRevolution }) => {
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-32 pb-16 md:pt-40 lg:pt-44">
       {/* Background Effects */}
@@ -44,7 +48,10 @@ const Hero: React.FC = () => {
 
         {/* CTAs */}
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-          <button className="group relative px-6 py-3.5 bg-allrah-main text-white rounded-xl font-bold tracking-wide overflow-hidden transition-all hover:scale-105 shadow-[0_0_40px_-10px_#6A00FF] w-full sm:w-auto">
+          <button 
+            onClick={onStartRevolution}
+            className="group relative px-6 py-3.5 bg-allrah-main text-white rounded-xl font-bold tracking-wide overflow-hidden transition-all hover:scale-105 shadow-[0_0_40px_-10px_#6A00FF] w-full sm:w-auto cursor-pointer"
+          >
             <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/30 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
             <span className="relative flex items-center justify-center gap-2">
               Iniciar Revolução <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
