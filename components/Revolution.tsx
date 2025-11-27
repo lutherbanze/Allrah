@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { Mic, MicOff, X, Activity, Volume2 } from 'lucide-react';
+import { Mic, MicOff, X, Activity, Volume2, Power } from 'lucide-react';
 import { GoogleGenAI, LiveServerMessage, Modality } from '@google/genai';
 
 interface RevolutionProps {
@@ -7,7 +7,7 @@ interface RevolutionProps {
 }
 
 const Revolution: React.FC<RevolutionProps> = ({ onBack }) => {
-  const [status, setStatus] = useState<'connecting' | 'connected' | 'error' | 'disconnected'>('connecting');
+  const [status, setStatus] = useState<'idle' | 'connecting' | 'connected' | 'error' | 'disconnected'>('idle');
   const [isMicOn, setIsMicOn] = useState(true);
   const [audioLevel, setAudioLevel] = useState(0); // For visualization
   const [errorMessage, setErrorMessage] = useState('');
@@ -22,8 +22,8 @@ const Revolution: React.FC<RevolutionProps> = ({ onBack }) => {
   // Connection Ref
   const sessionRef = useRef<any>(null);
 
+  // Cleanup on unmount
   useEffect(() => {
-    startRevolution();
     return () => stopRevolution();
   }, []);
 
@@ -70,8 +70,8 @@ const Revolution: React.FC<RevolutionProps> = ({ onBack }) => {
             setStatus('connected');
             setupAudioInput(stream, sessionPromise);
             
-            // Send initial greeting trigger (optional hack if model doesn't auto-start, but prompt says it should)
-             sessionPromise.then(session => {
+            // Send initial greeting trigger
+             sessionPromise.then((session: any) => {
                 session.send({ parts: [{ text: "Start" }] });
              });
           },
@@ -95,7 +95,7 @@ const Revolution: React.FC<RevolutionProps> = ({ onBack }) => {
     } catch (err) {
       console.error("Initialization Error:", err);
       setStatus('error');
-      setErrorMessage("Permissão de áudio negada ou erro de rede.");
+      setErrorMessage("Permissão de áudio necessária para prosseguir.");
     }
   };
 
@@ -210,9 +210,9 @@ const Revolution: React.FC<RevolutionProps> = ({ onBack }) => {
       {/* Header */}
       <div className="absolute top-0 left-0 w-full p-6 flex justify-between items-center z-20">
          <div className="flex items-center gap-2">
-            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-            <span className="text-green-500 text-xs tracking-widest font-mono uppercase">
-               {status === 'connected' ? 'Neural Link Established' : status === 'connecting' ? 'Establishing Handshake...' : 'Link Broken'}
+            <div className={`w-2 h-2 rounded-full ${status === 'connected' ? 'bg-green-500 animate-pulse' : 'bg-gray-500'}`}></div>
+            <span className={`text-xs tracking-widest font-mono uppercase ${status === 'connected' ? 'text-green-500' : 'text-gray-500'}`}>
+               {status === 'connected' ? 'Neural Link Established' : status === 'connecting' ? 'Establishing Handshake...' : status === 'idle' ? 'System Standby' : 'Link Offline'}
             </span>
          </div>
          <button onClick={onBack} className="p-2 rounded-full bg-white/5 hover:bg-white/10 text-white transition-colors border border-white/10">
@@ -220,87 +220,118 @@ const Revolution: React.FC<RevolutionProps> = ({ onBack }) => {
          </button>
       </div>
 
-      {/* Central Visualizer */}
-      <div className="relative z-10 flex flex-col items-center gap-12">
+      {/* Main Content Area */}
+      <div className="relative z-10 flex flex-col items-center gap-12 w-full max-w-lg px-6">
          
-         <div className="relative group">
-            {/* Outer Rings */}
-            <div className={`absolute inset-0 rounded-full border border-allrah-main/30 scale-[1.5] transition-transform duration-100 ${status === 'connected' ? 'animate-spin-slow' : ''}`}></div>
-            <div className={`absolute inset-0 rounded-full border border-dashed border-allrah-main/20 scale-[2] transition-transform duration-100 ${status === 'connected' ? 'animate-[spin_10s_linear_infinite_reverse]' : ''}`}></div>
-            
-            {/* The Orb */}
-            <div 
-               className="w-48 h-48 md:w-64 md:h-64 rounded-full bg-gradient-to-b from-allrah-main to-black border border-allrah-main/50 shadow-[0_0_100px_rgba(106,0,255,0.4)] flex items-center justify-center relative transition-all duration-75"
-               style={{
-                  transform: `scale(${1 + Math.min(audioLevel, 0.5)})`,
-                  boxShadow: `0 0 ${50 + audioLevel * 200}px rgba(106,0,255, ${0.4 + audioLevel})`
-               }}
-            >
-               <div className="absolute inset-2 rounded-full bg-black/80 backdrop-blur-sm"></div>
-               
-               {/* Core */}
-               {status === 'connecting' ? (
-                  <div className="flex gap-1">
-                     <div className="w-2 h-2 bg-white rounded-full animate-bounce"></div>
-                     <div className="w-2 h-2 bg-white rounded-full animate-bounce delay-75"></div>
-                     <div className="w-2 h-2 bg-white rounded-full animate-bounce delay-150"></div>
-                  </div>
-               ) : status === 'error' ? (
-                  <Activity className="text-red-500 w-16 h-16 animate-pulse" />
-               ) : (
-                  <div className="relative w-full h-full flex items-center justify-center">
-                     <div className="w-32 h-1 bg-allrah-main blur-sm absolute"></div>
-                     <div 
-                        className="w-32 h-1 bg-white absolute transition-all duration-75"
-                        style={{ height: `${2 + audioLevel * 50}px`, opacity: 0.8 + audioLevel }}
-                     ></div>
-                     <div 
-                        className="w-1 h-32 bg-white absolute transition-all duration-75"
-                        style={{ width: `${2 + audioLevel * 50}px`, opacity: 0.8 + audioLevel }}
-                     ></div>
-                  </div>
-               )}
+         {/* IDLE STATE: Start Button */}
+         {status === 'idle' && (
+            <div className="flex flex-col items-center animate-fade-in-up text-center">
+                <div className="mb-12 relative group">
+                   <div className="absolute inset-0 bg-allrah-main blur-[60px] opacity-20 group-hover:opacity-40 transition-opacity duration-700 rounded-full"></div>
+                   <button 
+                      onClick={startRevolution}
+                      className="relative w-32 h-32 rounded-full border border-allrah-main/50 bg-black/40 backdrop-blur-md flex items-center justify-center transition-all duration-500 hover:scale-110 hover:border-allrah-main hover:shadow-[0_0_50px_rgba(106,0,255,0.4)] cursor-pointer group-hover:bg-allrah-main/10"
+                   >
+                      <Power size={40} className="text-allrah-main group-hover:text-white transition-colors duration-300" />
+                      <span className="absolute inset-0 rounded-full border-2 border-white/10 border-dashed animate-[spin_20s_linear_infinite] group-hover:border-allrah-main/30"></span>
+                   </button>
+                </div>
+                <h2 className="text-3xl md:text-4xl font-black text-white mb-4 tracking-tight">Iniciar Revolução</h2>
+                <p className="text-gray-400 font-medium leading-relaxed max-w-md">
+                   Clique para estabelecer conexão segura com a IA da Allrah e experimentar o futuro da voz.
+                </p>
             </div>
-         </div>
+         )}
 
-         {/* Status Text */}
-         <div className="text-center h-16">
-            {status === 'connecting' && (
-               <p className="text-gray-400 font-mono text-sm animate-pulse">
-                  Calibrando frequências quânticas...
-               </p>
-            )}
-            {status === 'connected' && (
-               <p className="text-white font-medium text-lg animate-fade-in-up">
-                  {audioLevel > 0.1 ? "Allrah ouvindo..." : "Aguardando comando de voz..."}
-               </p>
-            )}
-            {status === 'error' && (
-               <p className="text-red-400 font-bold">
-                  {errorMessage}
-               </p>
-            )}
-         </div>
+         {/* CONNECTING/ACTIVE STATE: Visualizer */}
+         {(status === 'connecting' || status === 'connected' || status === 'error') && (
+            <>
+                <div className="relative group">
+                    {/* Outer Rings */}
+                    <div className={`absolute inset-0 rounded-full border border-allrah-main/30 scale-[1.5] transition-transform duration-100 ${status === 'connected' ? 'animate-spin-slow' : ''}`}></div>
+                    <div className={`absolute inset-0 rounded-full border border-dashed border-allrah-main/20 scale-[2] transition-transform duration-100 ${status === 'connected' ? 'animate-[spin_10s_linear_infinite_reverse]' : ''}`}></div>
+                    
+                    {/* The Orb */}
+                    <div 
+                    className="w-48 h-48 md:w-64 md:h-64 rounded-full bg-gradient-to-b from-allrah-main to-black border border-allrah-main/50 shadow-[0_0_100px_rgba(106,0,255,0.4)] flex items-center justify-center relative transition-all duration-75"
+                    style={{
+                        transform: `scale(${1 + Math.min(audioLevel, 0.5)})`,
+                        boxShadow: `0 0 ${50 + audioLevel * 200}px rgba(106,0,255, ${0.4 + audioLevel})`
+                    }}
+                    >
+                    <div className="absolute inset-2 rounded-full bg-black/80 backdrop-blur-sm"></div>
+                    
+                    {/* Core */}
+                    {status === 'connecting' ? (
+                        <div className="flex gap-1">
+                            <div className="w-2 h-2 bg-white rounded-full animate-bounce"></div>
+                            <div className="w-2 h-2 bg-white rounded-full animate-bounce delay-75"></div>
+                            <div className="w-2 h-2 bg-white rounded-full animate-bounce delay-150"></div>
+                        </div>
+                    ) : status === 'error' ? (
+                        <Activity className="text-red-500 w-16 h-16 animate-pulse" />
+                    ) : (
+                        <div className="relative w-full h-full flex items-center justify-center">
+                            <div className="w-32 h-1 bg-allrah-main blur-sm absolute"></div>
+                            <div 
+                                className="w-32 h-1 bg-white absolute transition-all duration-75"
+                                style={{ height: `${2 + audioLevel * 50}px`, opacity: 0.8 + audioLevel }}
+                            ></div>
+                            <div 
+                                className="w-1 h-32 bg-white absolute transition-all duration-75"
+                                style={{ width: `${2 + audioLevel * 50}px`, opacity: 0.8 + audioLevel }}
+                            ></div>
+                        </div>
+                    )}
+                    </div>
+                </div>
 
-         {/* Controls */}
-         <div className="flex items-center gap-6">
-            <button 
-               className={`p-6 rounded-full transition-all duration-300 ${isMicOn ? 'bg-white text-black hover:scale-110 shadow-[0_0_30px_rgba(255,255,255,0.3)]' : 'bg-red-500/20 text-red-500 border border-red-500/50'}`}
-               onClick={toggleMic}
-            >
-               {isMicOn ? <Mic size={32} /> : <MicOff size={32} />}
-            </button>
-            
-            <div className="flex flex-col gap-1">
-               <span className="w-1 h-1 bg-gray-500 rounded-full"></span>
-               <span className="w-1 h-1 bg-gray-500 rounded-full"></span>
-               <span className="w-1 h-1 bg-gray-500 rounded-full"></span>
-            </div>
+                {/* Status Text */}
+                <div className="text-center h-16">
+                    {status === 'connecting' && (
+                    <p className="text-gray-400 font-mono text-sm animate-pulse">
+                        Calibrando frequências quânticas...
+                    </p>
+                    )}
+                    {status === 'connected' && (
+                    <p className="text-white font-medium text-lg animate-fade-in-up">
+                        {audioLevel > 0.1 ? "Allrah ouvindo..." : "Aguardando comando de voz..."}
+                    </p>
+                    )}
+                    {status === 'error' && (
+                    <div className="flex flex-col gap-2">
+                        <p className="text-red-400 font-bold">
+                            {errorMessage}
+                        </p>
+                        <button onClick={startRevolution} className="text-sm underline text-gray-400 hover:text-white">Tentar Novamente</button>
+                    </div>
+                    )}
+                </div>
 
-            <div className="p-4 rounded-full bg-white/5 border border-white/10 text-gray-400">
-               <Volume2 size={24} />
-            </div>
-         </div>
+                {/* Controls */}
+                {status === 'connected' && (
+                    <div className="flex items-center gap-6 animate-fade-in-up">
+                        <button 
+                        className={`p-6 rounded-full transition-all duration-300 ${isMicOn ? 'bg-white text-black hover:scale-110 shadow-[0_0_30px_rgba(255,255,255,0.3)]' : 'bg-red-500/20 text-red-500 border border-red-500/50'}`}
+                        onClick={toggleMic}
+                        >
+                        {isMicOn ? <Mic size={32} /> : <MicOff size={32} />}
+                        </button>
+                        
+                        <div className="flex flex-col gap-1">
+                        <span className="w-1 h-1 bg-gray-500 rounded-full"></span>
+                        <span className="w-1 h-1 bg-gray-500 rounded-full"></span>
+                        <span className="w-1 h-1 bg-gray-500 rounded-full"></span>
+                        </div>
+
+                        <div className="p-4 rounded-full bg-white/5 border border-white/10 text-gray-400">
+                        <Volume2 size={24} />
+                        </div>
+                    </div>
+                )}
+            </>
+         )}
+
       </div>
     </div>
   );
