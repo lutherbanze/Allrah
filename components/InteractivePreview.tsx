@@ -19,24 +19,24 @@ const InteractivePreview: React.FC = () => {
   ];
 
   return (
-    <section id="tech" className="py-24 bg-gradient-to-b from-allrah-dark via-[#0d0026] to-allrah-dark relative overflow-hidden">
+    <section id="tech" className="py-20 md:py-24 bg-gradient-to-b from-allrah-dark via-[#0d0026] to-allrah-dark relative overflow-hidden">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(106,0,255,0.1)_0%,transparent_70%)]"></div>
       
-      <div className="container mx-auto px-6 flex flex-col lg:flex-row items-center gap-16 relative z-10">
+      <div className="container mx-auto px-6 flex flex-col lg:flex-row items-center gap-12 lg:gap-16 relative z-10">
         
         {/* Left Content */}
         <div className="lg:w-1/2">
-          <h2 className="text-4xl md:text-5xl font-bold mb-8">
+          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-6">
             Fluxos de Trabalho <br />
             <span className="text-allrah-main">Autocorretivos</span>
           </h2>
-          <p className="text-gray-400 text-lg mb-8 leading-relaxed">
+          <p className="text-gray-400 text-base md:text-lg mb-8 leading-relaxed">
             Esqueça as regras estáticas. A Allrah aprende com suas operações diárias,
             ajustando automaticamente os parâmetros de automação para maximizar a eficiência
             e reduzir erros a zero.
           </p>
           
-          <div className="space-y-6">
+          <div className="space-y-4 md:space-y-6">
             {steps.map((s, idx) => (
               <div 
                 key={idx}
@@ -66,7 +66,7 @@ const InteractivePreview: React.FC = () => {
             </div>
             
             {/* Terminal Body */}
-            <div className="bg-black/90 p-6 rounded-b-xl font-mono text-sm h-[350px] overflow-hidden flex flex-col justify-end">
+            <div className="bg-black/90 p-6 rounded-b-xl font-mono text-sm h-[320px] md:h-[350px] overflow-hidden flex flex-col justify-end">
                <div className="text-gray-500 mb-2">Last login: {new Date().toLocaleTimeString()} on ttys000</div>
                
                <div className={`transition-opacity duration-300 ${step >= 0 ? 'opacity-100' : 'opacity-0'}`}>

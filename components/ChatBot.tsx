@@ -77,14 +77,14 @@ const ChatBot: React.FC = () => {
   };
 
   return (
-    <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end font-sans">
+    <div className="fixed bottom-4 right-4 md:bottom-6 md:right-6 z-50 flex flex-col items-end font-sans">
       
       {/* Chat Window */}
       {isOpen && (
-        <div className="mb-4 w-[350px] md:w-[400px] h-[500px] bg-allrah-dark/95 backdrop-blur-xl border border-white/10 rounded-2xl shadow-[0_0_50px_rgba(0,0,0,0.5)] flex flex-col overflow-hidden animate-fade-in-up origin-bottom-right">
+        <div className="mb-4 w-[calc(100vw-2rem)] sm:w-[350px] md:w-[400px] h-[60vh] md:h-[500px] max-h-[80vh] bg-allrah-dark/95 backdrop-blur-xl border border-white/10 rounded-2xl shadow-[0_0_50px_rgba(0,0,0,0.5)] flex flex-col overflow-hidden animate-fade-in-up origin-bottom-right transition-all">
           
           {/* Header */}
-          <div className="p-4 bg-gradient-to-r from-allrah-main to-allrah-deep flex items-center justify-between border-b border-white/10">
+          <div className="p-4 bg-gradient-to-r from-allrah-main to-allrah-deep flex items-center justify-between border-b border-white/10 shrink-0">
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center backdrop-blur-sm">
                 <Bot size={18} className="text-white" />
@@ -112,7 +112,7 @@ const ChatBot: React.FC = () => {
                 className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}
               >
                 <div 
-                  className={`max-w-[80%] p-3.5 rounded-2xl text-sm leading-relaxed ${
+                  className={`max-w-[85%] p-3.5 rounded-2xl text-sm leading-relaxed ${
                     msg.sender === 'user' 
                       ? 'bg-allrah-main text-white rounded-br-none shadow-[0_0_15px_rgba(106,0,255,0.3)]' 
                       : 'bg-white/10 text-gray-100 border border-white/5 rounded-bl-none'
@@ -136,18 +136,18 @@ const ChatBot: React.FC = () => {
           </div>
 
           {/* Input Area */}
-          <form onSubmit={handleSendMessage} className="p-4 bg-black/40 border-t border-white/10 flex gap-2">
+          <form onSubmit={handleSendMessage} className="p-4 bg-black/40 border-t border-white/10 flex gap-2 shrink-0">
             <input 
               type="text" 
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
               placeholder="Digite sua pergunta..."
-              className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-allrah-main/50 focus:bg-white/10 transition-all placeholder-gray-500"
+              className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-allrah-main/50 focus:bg-white/10 transition-all placeholder-gray-500 min-w-0"
             />
             <button 
               type="submit"
               disabled={!inputValue.trim()}
-              className="p-2.5 bg-allrah-main hover:bg-allrah-deep text-white rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="p-2.5 bg-allrah-main hover:bg-allrah-deep text-white rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
             >
               <Send size={18} />
             </button>
@@ -160,7 +160,7 @@ const ChatBot: React.FC = () => {
         onClick={() => setIsOpen(!isOpen)}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
-        className="group relative w-14 h-14 bg-allrah-main hover:bg-white hover:text-allrah-main text-white rounded-full flex items-center justify-center shadow-[0_0_30px_rgba(106,0,255,0.4)] transition-all duration-300 transform hover:scale-110 active:scale-95"
+        className="group relative w-12 h-12 md:w-14 md:h-14 bg-allrah-main hover:bg-white hover:text-allrah-main text-white rounded-full flex items-center justify-center shadow-[0_0_30px_rgba(106,0,255,0.4)] transition-all duration-300 transform hover:scale-110 active:scale-95"
       >
         {/* Ripples */}
         {!isOpen && (
@@ -171,16 +171,16 @@ const ChatBot: React.FC = () => {
         )}
         
         {isOpen ? (
-            <X size={28} />
+            <X size={24} className="md:w-7 md:h-7" />
         ) : (
-            <MessageSquare size={28} className={isHovered ? 'animate-bounce' : ''} />
+            <MessageSquare size={24} className={`md:w-7 md:h-7 ${isHovered ? 'animate-bounce' : ''}`} />
         )}
 
         {/* Badge */}
         {!isOpen && (
-            <span className="absolute -top-1 -right-1 flex h-4 w-4">
+            <span className="absolute -top-1 -right-1 flex h-3 w-3 md:h-4 md:w-4">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-4 w-4 bg-red-500"></span>
+              <span className="relative inline-flex rounded-full h-3 w-3 md:h-4 md:w-4 bg-red-500"></span>
             </span>
         )}
       </button>

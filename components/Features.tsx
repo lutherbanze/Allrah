@@ -10,7 +10,7 @@ interface FeatureCardProps {
 
 const FeatureCard: React.FC<FeatureCardProps> = ({ icon, title, description, delay }) => (
   <div 
-    className={`group relative p-8 rounded-3xl overflow-hidden transition-all duration-500 hover:-translate-y-2`}
+    className={`group relative p-6 md:p-8 rounded-3xl overflow-hidden transition-all duration-500 hover:-translate-y-2`}
     style={{ animationDelay: delay }}
   >
     {/* Liquid Glass Background */}
@@ -20,10 +20,10 @@ const FeatureCard: React.FC<FeatureCardProps> = ({ icon, title, description, del
     <div className="absolute inset-0 bg-gradient-to-br from-allrah-main/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-3xl"></div>
     
     <div className="relative z-10">
-      <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-allrah-deep/80 to-allrah-dark border border-white/10 flex items-center justify-center mb-6 group-hover:scale-110 group-hover:shadow-[0_0_30px_#6A00FF] transition-all duration-300 text-white shadow-lg">
+      <div className="w-14 h-14 md:w-16 md:h-16 rounded-2xl bg-gradient-to-br from-allrah-deep/80 to-allrah-dark border border-white/10 flex items-center justify-center mb-5 group-hover:scale-110 group-hover:shadow-[0_0_30px_#6A00FF] transition-all duration-300 text-white shadow-lg">
         {icon}
       </div>
-      <h3 className="text-xl font-bold text-white mb-3 tracking-tight">{title}</h3>
+      <h3 className="text-lg md:text-xl font-bold text-white mb-2 md:mb-3 tracking-tight">{title}</h3>
       <p className="text-gray-400 leading-relaxed text-sm group-hover:text-gray-200 transition-colors font-medium">
         {description}
       </p>
@@ -66,20 +66,20 @@ const Features: React.FC = () => {
   ];
 
   return (
-    <section id="features" className="py-32 relative bg-allrah-dark">
+    <section id="features" className="py-20 md:py-24 relative bg-allrah-dark">
       {/* Background blobs */}
       <div className="absolute top-40 left-0 w-96 h-96 bg-allrah-main/10 rounded-full blur-[100px] pointer-events-none"></div>
       <div className="absolute bottom-40 right-0 w-96 h-96 bg-blue-600/10 rounded-full blur-[100px] pointer-events-none"></div>
 
       <div className="container mx-auto px-6 relative z-10">
-        <div className="text-center mb-20">
-          <h2 className="text-sm font-bold text-allrah-main tracking-[0.2em] uppercase mb-4">
+        <div className="text-center mb-16">
+          <h2 className="text-xs md:text-sm font-bold text-allrah-main tracking-[0.2em] uppercase mb-3">
             Tecnologia Core
           </h2>
-          <h3 className="text-3xl md:text-5xl font-black text-white mb-6">
+          <h3 className="text-3xl md:text-4xl lg:text-5xl font-black text-white mb-6">
             Poder Além da <span className="text-transparent bg-clip-text bg-gradient-to-r from-allrah-main to-purple-400">Imaginação</span>
           </h3>
-          <p className="text-gray-400 max-w-2xl mx-auto font-medium">
+          <p className="text-gray-400 max-w-2xl mx-auto font-medium text-sm md:text-base">
             Uma suíte completa de ferramentas desenhadas para o ecossistema digital do próximo século.
           </p>
         </div>

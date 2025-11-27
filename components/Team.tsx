@@ -22,24 +22,24 @@ const TeamMember: React.FC<TeamMemberProps> = ({ name, role, initials, delay, so
   >
     <div className="absolute inset-0 bg-allrah-main/20 blur-xl opacity-0 group-hover:opacity-50 transition-opacity duration-500 rounded-2xl"></div>
     
-    <div className="relative bg-[#0a051e] p-8 rounded-xl h-full flex flex-col items-center text-center border border-white/5 group-hover:border-allrah-main/30 backdrop-blur-md overflow-hidden">
+    <div className="relative bg-[#0a051e] p-6 md:p-8 rounded-xl h-full flex flex-col items-center text-center border border-white/5 group-hover:border-allrah-main/30 backdrop-blur-md overflow-hidden">
       
       {/* Liquid background effect inside card */}
       <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-b from-white/5 to-transparent opacity-50"></div>
 
       {/* Avatar/Placeholder */}
-      <div className="relative mb-6">
-        <div className="w-24 h-24 rounded-full bg-gradient-to-br from-allrah-deep to-allrah-dark flex items-center justify-center border-2 border-white/10 shadow-[0_0_20px_rgba(106,0,255,0.3)] group-hover:shadow-[0_0_40px_rgba(106,0,255,0.6)] transition-all duration-500 z-10 relative">
+      <div className="relative mb-5 md:mb-6">
+        <div className="w-20 h-20 md:w-24 md:h-24 rounded-full bg-gradient-to-br from-allrah-deep to-allrah-dark flex items-center justify-center border-2 border-white/10 shadow-[0_0_20px_rgba(106,0,255,0.3)] group-hover:shadow-[0_0_40px_rgba(106,0,255,0.6)] transition-all duration-500 z-10 relative">
           <span className="text-2xl font-black text-white">{initials}</span>
         </div>
         {/* Ring */}
         <div className="absolute -inset-2 rounded-full border border-allrah-main/30 border-dashed animate-spin-slow"></div>
       </div>
 
-      <h4 className="text-xl font-bold text-white mb-1 group-hover:text-allrah-light transition-colors">{name}</h4>
-      <p className="text-allrah-main text-sm font-semibold tracking-wide uppercase mb-6">{role}</p>
+      <h4 className="text-lg md:text-xl font-bold text-white mb-1 group-hover:text-allrah-light transition-colors">{name}</h4>
+      <p className="text-allrah-main text-xs md:text-sm font-semibold tracking-wide uppercase mb-5 md:mb-6">{role}</p>
       
-      <div className="flex gap-4 mt-auto opacity-60 group-hover:opacity-100 transition-opacity justify-center flex-wrap">
+      <div className="flex gap-3 md:gap-4 mt-auto opacity-60 group-hover:opacity-100 transition-opacity justify-center flex-wrap">
         {socials.map((social, idx) => (
           <a 
             key={idx}
@@ -47,9 +47,9 @@ const TeamMember: React.FC<TeamMemberProps> = ({ name, role, initials, delay, so
             target={social.href.startsWith('http') ? '_blank' : undefined}
             rel={social.href.startsWith('http') ? 'noopener noreferrer' : undefined}
             title={social.label}
-            className="p-2 rounded-lg bg-white/5 hover:bg-allrah-main hover:text-white transition-all text-gray-400"
+            className="p-1.5 md:p-2 rounded-lg bg-white/5 hover:bg-allrah-main hover:text-white transition-all text-gray-400"
           >
-              <social.icon size={18} />
+              <social.icon size={16} className="md:w-[18px] md:h-[18px]" />
           </a>
         ))}
       </div>
@@ -93,13 +93,13 @@ const Team: React.FC = () => {
   ];
 
   return (
-    <section id="team" className="py-24 relative bg-allrah-dark overflow-hidden">
+    <section id="team" className="py-20 md:py-24 relative bg-allrah-dark overflow-hidden">
         {/* Background Gradients */}
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(106,0,255,0.15)_0%,rgba(0,0,0,0)_60%)]"></div>
         
         <div className="container mx-auto px-6 relative z-10">
-            <div className="text-center mb-16">
-                <h2 className="text-sm font-bold text-allrah-main tracking-[0.2em] uppercase mb-4">
+            <div className="text-center mb-12 md:mb-16">
+                <h2 className="text-xs md:text-sm font-bold text-allrah-main tracking-[0.2em] uppercase mb-3 md:mb-4">
                     Visionários
                 </h2>
                 <h3 className="text-3xl md:text-5xl font-black text-white">
@@ -108,7 +108,7 @@ const Team: React.FC = () => {
                 </h3>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 max-w-5xl mx-auto">
                 {team.map((member, idx) => (
                     <TeamMember 
                         key={idx}
