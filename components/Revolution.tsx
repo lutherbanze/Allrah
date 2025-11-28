@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { Mic, MicOff, X, Activity, Volume2, Power } from 'lucide-react';
+import { Mic, MicOff, X, Activity, Volume2, Power, AlertTriangle } from 'lucide-react';
 import { GoogleGenAI, LiveServerMessage, Modality } from '@google/genai';
 
 // Solução para o erro TS2580: Declarar process para o ambiente do navegador
@@ -30,31 +30,69 @@ const Revolution: React.FC<RevolutionProps> = ({ onBack }) => {
     return () => stopRevolution();
   }, []);
 
-  const startRevolution = async () => {
-    try {
-      setStatus('connecting');
+  const stopRevolution = () => {
+     try {
+        // Cleanup Audio
+        if (mediaStreamRef.current) {
+           mediaStreamRef.current.getTracks().forEach(track => track.stop());
+           mediaStreamRef.current = null;
+        }
+        if (inputProcessorRef.current) {
+           inputProcessorRef.current.disconnect();
+           inputProcessorRef.current = null;
+        }
+        if (audioContextRef.current) {
+           if (audioContextRef.current.state !== 'closed') {
+             audioContextRef.current.close();
+           }
+           audioContextRef.current = null;
+        }
+        
+        sourcesRef.current.forEach(src => {
+            try { src.stop(); } catch(e) {}
+        });
+        sourcesRef.current.clear();
+     } catch (e) {
+         console.error("Error stopping revolution:", e);
+     }
+  };
 
-      // Initialize Audio Contexts
+  const startRevolution = async () => {
+    // Garantir limpeza antes de começar
+    stopRevolution();
+    setStatus('connecting');
+    setErrorMessage('');
+
+    try {
+      // 1. Verificação da API Key antes de tudo
+      if (!process.env.API_KEY || process.env.API_KEY === 'undefined') {
+         throw new Error("API_KEY_MISSING");
+      }
+
+      // 2. Microphone Access
+      let stream;
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({ 
+            audio: { 
+            sampleRate: 16000, 
+            channelCount: 1,
+            echoCancellation: true,
+            noiseSuppression: true
+            } 
+        });
+      } catch (micErr) {
+          throw new Error("MIC_PERMISSION_DENIED");
+      }
+      
+      mediaStreamRef.current = stream;
+
+      // 3. Initialize Audio Contexts
       const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
       const audioCtx = new AudioContextClass({ sampleRate: 24000 }); // Output sample rate
       audioContextRef.current = audioCtx;
       nextStartTimeRef.current = audioCtx.currentTime;
 
-      // Microphone Access
-      const stream = await navigator.mediaDevices.getUserMedia({ 
-        audio: { 
-          sampleRate: 16000, 
-          channelCount: 1,
-          echoCancellation: true,
-          noiseSuppression: true
-        } 
-      });
-      mediaStreamRef.current = stream;
-
-      // Initialize Gemini
-      if (!process.env.API_KEY) {
-         throw new Error("API Key not found");
-      }
+      // 4. Initialize Gemini
       const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
       
       // Connect to Live API
@@ -88,17 +126,24 @@ const Revolution: React.FC<RevolutionProps> = ({ onBack }) => {
           onerror: (err) => {
             console.error("Gemini Error:", err);
             setStatus('error');
-            setErrorMessage("Falha na conexão neural.");
+            setErrorMessage("Conexão perdida com a IA.");
           }
         }
       });
       
       sessionRef.current = sessionPromise;
 
-    } catch (err) {
+    } catch (err: any) {
       console.error("Initialization Error:", err);
       setStatus('error');
-      setErrorMessage("Permissão de áudio necessária para prosseguir.");
+      
+      if (err.message === "API_KEY_MISSING") {
+          setErrorMessage("Configuração Faltando: Adicione a API_KEY nas variáveis de ambiente da Vercel.");
+      } else if (err.message === "MIC_PERMISSION_DENIED") {
+          setErrorMessage("Acesso ao microfone negado. Permita o acesso no navegador.");
+      } else {
+          setErrorMessage("Erro ao conectar: " + (err.message || "Erro desconhecido"));
+      }
     }
   };
 
@@ -188,21 +233,6 @@ const Revolution: React.FC<RevolutionProps> = ({ onBack }) => {
     }
   };
 
-  const stopRevolution = () => {
-     // Cleanup Audio
-     if (mediaStreamRef.current) {
-        mediaStreamRef.current.getTracks().forEach(track => track.stop());
-     }
-     if (inputProcessorRef.current) {
-        inputProcessorRef.current.disconnect();
-     }
-     if (audioContextRef.current) {
-        audioContextRef.current.close();
-     }
-     
-     // Close Session (Not directly exposed in quick setup, but garbage collected)
-  };
-
   const toggleMic = () => {
      setIsMicOn(!isMicOn);
   };
@@ -216,8 +246,8 @@ const Revolution: React.FC<RevolutionProps> = ({ onBack }) => {
       {/* Header */}
       <div className="absolute top-0 left-0 w-full p-6 flex justify-between items-center z-20">
          <div className="flex items-center gap-2">
-            <div className={`w-2 h-2 rounded-full ${status === 'connected' ? 'bg-green-500 animate-pulse' : 'bg-gray-500'}`}></div>
-            <span className={`text-xs tracking-widest font-mono uppercase ${status === 'connected' ? 'text-green-500' : 'text-gray-500'}`}>
+            <div className={`w-2 h-2 rounded-full ${status === 'connected' ? 'bg-green-500 animate-pulse' : status === 'error' ? 'bg-red-500' : 'bg-gray-500'}`}></div>
+            <span className={`text-xs tracking-widest font-mono uppercase ${status === 'connected' ? 'text-green-500' : status === 'error' ? 'text-red-500' : 'text-gray-500'}`}>
                {status === 'connected' ? 'Neural Link Established' : status === 'connecting' ? 'Establishing Handshake...' : status === 'idle' ? 'System Standby' : 'Link Offline'}
             </span>
          </div>
@@ -259,10 +289,10 @@ const Revolution: React.FC<RevolutionProps> = ({ onBack }) => {
                     
                     {/* The Orb */}
                     <div 
-                    className="w-48 h-48 md:w-64 md:h-64 rounded-full bg-gradient-to-b from-allrah-main to-black border border-allrah-main/50 shadow-[0_0_100px_rgba(106,0,255,0.4)] flex items-center justify-center relative transition-all duration-75"
+                    className={`w-48 h-48 md:w-64 md:h-64 rounded-full bg-gradient-to-b ${status === 'error' ? 'from-red-600 to-black border-red-500' : 'from-allrah-main to-black border-allrah-main/50'} border shadow-[0_0_100px_rgba(106,0,255,0.4)] flex items-center justify-center relative transition-all duration-75`}
                     style={{
                         transform: `scale(${1 + Math.min(audioLevel, 0.5)})`,
-                        boxShadow: `0 0 ${50 + audioLevel * 200}px rgba(106,0,255, ${0.4 + audioLevel})`
+                        boxShadow: `0 0 ${50 + audioLevel * 200}px ${status === 'error' ? 'rgba(239, 68, 68, 0.4)' : `rgba(106,0,255, ${0.4 + audioLevel})`}`
                     }}
                     >
                     <div className="absolute inset-2 rounded-full bg-black/80 backdrop-blur-sm"></div>
@@ -293,7 +323,7 @@ const Revolution: React.FC<RevolutionProps> = ({ onBack }) => {
                 </div>
 
                 {/* Status Text */}
-                <div className="text-center h-16">
+                <div className="text-center h-20">
                     {status === 'connecting' && (
                     <p className="text-gray-400 font-mono text-sm animate-pulse">
                         Calibrando frequências quânticas...
@@ -305,11 +335,17 @@ const Revolution: React.FC<RevolutionProps> = ({ onBack }) => {
                     </p>
                     )}
                     {status === 'error' && (
-                    <div className="flex flex-col gap-2">
-                        <p className="text-red-400 font-bold">
-                            {errorMessage}
-                        </p>
-                        <button onClick={startRevolution} className="text-sm underline text-gray-400 hover:text-white">Tentar Novamente</button>
+                    <div className="flex flex-col items-center gap-3 animate-fade-in-up">
+                        <div className="flex items-center gap-2 text-red-400 bg-red-500/10 px-4 py-2 rounded-lg border border-red-500/20">
+                            <AlertTriangle size={16} />
+                            <p className="font-bold text-sm">{errorMessage}</p>
+                        </div>
+                        <button 
+                            onClick={startRevolution} 
+                            className="px-6 py-2 bg-white text-black font-bold rounded-full hover:scale-105 transition-transform text-sm"
+                        >
+                            Tentar Novamente
+                        </button>
                     </div>
                     )}
                 </div>
