@@ -2,6 +2,9 @@ import React, { useEffect, useState, useRef } from 'react';
 import { Mic, MicOff, X, Activity, Volume2, Power } from 'lucide-react';
 import { GoogleGenAI, LiveServerMessage, Modality } from '@google/genai';
 
+// Solução para o erro TS2580: Declarar process para o ambiente do navegador
+declare var process: any;
+
 interface RevolutionProps {
   onBack: () => void;
 }
@@ -144,34 +147,37 @@ const Revolution: React.FC<RevolutionProps> = ({ onBack }) => {
     // Audio Data
     if (serverContent?.modelTurn?.parts?.[0]?.inlineData) {
        const base64Audio = serverContent.modelTurn.parts[0].inlineData.data;
-       const audioData = Uint8Array.from(atob(base64Audio), c => c.charCodeAt(0));
-       
-       // Decode PCM (1 channel, 24kHz)
-       const audioBuffer = audioCtx.createBuffer(1, audioData.length / 2, 24000);
-       const channelData = audioBuffer.getChannelData(0);
-       const int16Data = new Int16Array(audioData.buffer);
-       
-       let maxVal = 0;
-       for(let i=0; i < int16Data.length; i++) {
-          const val = int16Data[i] / 32768.0;
-          channelData[i] = val;
-          if(Math.abs(val) > maxVal) maxVal = Math.abs(val);
+       // Solução para erro TS2345: Garantir que base64Audio seja string
+       if (base64Audio) {
+           const audioData = Uint8Array.from(atob(base64Audio), c => c.charCodeAt(0));
+           
+           // Decode PCM (1 channel, 24kHz)
+           const audioBuffer = audioCtx.createBuffer(1, audioData.length / 2, 24000);
+           const channelData = audioBuffer.getChannelData(0);
+           const int16Data = new Int16Array(audioData.buffer);
+           
+           let maxVal = 0;
+           for(let i=0; i < int16Data.length; i++) {
+              const val = int16Data[i] / 32768.0;
+              channelData[i] = val;
+              if(Math.abs(val) > maxVal) maxVal = Math.abs(val);
+           }
+    
+           // Visualizer response from AI
+           setAudioLevel(maxVal * 2); 
+    
+           const source = audioCtx.createBufferSource();
+           source.buffer = audioBuffer;
+           source.connect(audioCtx.destination);
+           
+           // Scheduling
+           const startTime = Math.max(audioCtx.currentTime, nextStartTimeRef.current);
+           source.start(startTime);
+           nextStartTimeRef.current = startTime + audioBuffer.duration;
+           
+           sourcesRef.current.add(source);
+           source.onended = () => sourcesRef.current.delete(source);
        }
-
-       // Visualizer response from AI
-       setAudioLevel(maxVal * 2); 
-
-       const source = audioCtx.createBufferSource();
-       source.buffer = audioBuffer;
-       source.connect(audioCtx.destination);
-       
-       // Scheduling
-       const startTime = Math.max(audioCtx.currentTime, nextStartTimeRef.current);
-       source.start(startTime);
-       nextStartTimeRef.current = startTime + audioBuffer.duration;
-       
-       sourcesRef.current.add(source);
-       source.onended = () => sourcesRef.current.delete(source);
     }
 
     // Interruptions
