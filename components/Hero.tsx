@@ -54,7 +54,7 @@ const Hero: React.FC<HeroProps> = ({ onStartRevolution }) => {
           >
             <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/30 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
             <span className="relative flex items-center justify-center gap-2">
-              Iniciar Revolução <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+              Iniciar conversa <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </span>
           </button>
           
